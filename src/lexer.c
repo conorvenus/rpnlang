@@ -1,5 +1,10 @@
 #include "lexer.h"
 
+#define EXEC_INSTRUCTION(op)      \
+    int a = stack[stack_index--]; \
+    int b = stack[stack_index];   \
+    stack[stack_index] = b op a;
+
 const size_t STACK_CAPACITY = 64;
 
 void dump_token(Token token)
@@ -78,6 +83,16 @@ void lex(FILE *file)
     eval(tokens, tokens_index);
 }
 
+int check_args(size_t stack_index, size_t expected)
+{
+    if (stack_index < expected - 1)
+    {
+        printf("Received %d args for +, expected %d args", stack_index + 1, expected);
+        return 0;
+    }
+    return 1;
+}
+
 void eval(Token tokens[], size_t size)
 {
     int stack[STACK_CAPACITY];
@@ -93,50 +108,30 @@ void eval(Token tokens[], size_t size)
             break;
         case Plus:
         {
-            if (stack_index < 1)
-            {
-                printf("Received %d args for +, expected %d args", stack_index + 1, 2);
+            if (!check_args(stack_index, 2))
                 return;
-            }
-            int a = stack[stack_index--];
-            int b = stack[stack_index];
-            stack[stack_index] = a + b;
+            EXEC_INSTRUCTION(+);
             break;
         }
         case Minus:
         {
-            if (stack_index < 1)
-            {
-                printf("Received %d args for -, expected %d args", stack_index + 1, 2);
+            if (!check_args(stack_index, 2))
                 return;
-            }
-            int a = stack[stack_index--];
-            int b = stack[stack_index];
-            stack[stack_index] = b - a;
+            EXEC_INSTRUCTION(-);
             break;
         }
         case Multiply:
         {
-            if (stack_index < 1)
-            {
-                printf("Received %d args for *, expected %d args", stack_index + 1, 2);
+            if (!check_args(stack_index, 2))
                 return;
-            }
-            int a = stack[stack_index--];
-            int b = stack[stack_index];
-            stack[stack_index] = a * b;
+            EXEC_INSTRUCTION(*);
             break;
         }
         case Divide:
         {
-            if (stack_index < 1)
-            {
-                printf("Received %d args for /, expected %d args", stack_index + 1, 2);
+            if (!check_args(stack_index, 2))
                 return;
-            }
-            int a = stack[stack_index--];
-            int b = stack[stack_index];
-            stack[stack_index] = b / a;
+            EXEC_INSTRUCTION(/);
             break;
         }
         }
