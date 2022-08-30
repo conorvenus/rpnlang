@@ -5,14 +5,14 @@
 
 void print_usage(char *file_path)
 {
-    char *file_path_segment;
-    char *prev_file_path_segment = strtok(file_path, "/\\");
-    while (prev_file_path_segment != NULL)
+    char *prev_file_path_segment;
+    char *file_path_segment = strtok(file_path, "/\\");
+    while (file_path_segment != NULL)
     {
-        file_path_segment = prev_file_path_segment;
-        prev_file_path_segment = strtok(NULL, "/\\");
+        prev_file_path_segment = file_path_segment;
+        file_path_segment = strtok(NULL, "/\\");
     }
-    printf("Usage: %s [FILE_PATH]", file_path_segment);
+    printf("Usage: %s [FILE_PATH]", prev_file_path_segment);
 }
 
 int main(int argc, char *argv[])
