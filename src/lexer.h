@@ -4,17 +4,7 @@
 #include <stdlib.h>
 
 #include "token.h"
-
-typedef enum CharType
-{
-    Digit,
-    Letter,
-    Special
-} CharType;
-
-CharType map_char(char character);
-
-int consume_char(FILE *file);
+#include "char.h"
 
 void lex(FILE *file);
 

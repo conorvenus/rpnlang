@@ -1,5 +1,7 @@
 #include "lexer.h"
 
+#define consume_char(file) fgetc(file)
+
 #define EXEC_INSTRUCTION(op)      \
     int a = stack[stack_index--]; \
     int b = stack[stack_index];   \
@@ -13,29 +15,6 @@
     }
 
 const size_t STACK_CAPACITY = 64;
-
-void dump_token(Token token)
-{
-    printf("Type: %d\nValue: %s\n", token.Type, token.Value);
-}
-
-CharType map_char(char character)
-{
-    if (isalpha(character))
-    {
-        return Letter;
-    }
-    else if (isdigit(character))
-    {
-        return Digit;
-    }
-    return Special;
-}
-
-int consume_char(FILE *file)
-{
-    return fgetc(file);
-}
 
 Token consume_number(FILE *file, char initial_char)
 {
