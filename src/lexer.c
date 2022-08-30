@@ -5,6 +5,13 @@
     int b = stack[stack_index];   \
     stack[stack_index] = b op a;
 
+#define CHECK_ARGS(expected, op)                                                             \
+    if (stack_index + 1 < expected)                                                          \
+    {                                                                                        \
+        printf("Received %d args for " #op ", expected %d args", stack_index + 1, expected); \
+        return;                                                                              \
+    }
+
 const size_t STACK_CAPACITY = 64;
 
 void dump_token(Token token)
@@ -32,28 +39,40 @@ int consume_char(FILE *file)
 
 Token consume_number(FILE *file, char initial_char)
 {
-    char number[16] = {initial_char};
-    unsigned char number_index = 0;
+    size_t number_capacity = 1;
+    size_t number_index = 0;
+    char *number = malloc(number_capacity * sizeof(char));
+    *number = initial_char;
     char character;
     while ((character = consume_char(file)) && character != EOF && isdigit(character))
     {
+        if (number_index == number_capacity - 1)
+        {
+            number_capacity *= 2;
+            number = realloc(number, number_capacity * sizeof(char));
+        }
         number[++number_index] = character;
     }
+    number[++number_index] = '\0';
     if (character != EOF)
         fseek(file, -1, SEEK_CUR);
-    Token token = {Integer};
-    strcpy(token.Value, number);
-    return token;
+    return (Token){Integer, number};
 }
 
 void lex(FILE *file)
 {
     size_t tokens_index = 0;
-    Token tokens[100]; // TODO: malloc
+    size_t tokens_capacity = 1;
+    Token *tokens = malloc(tokens_capacity * sizeof(Token));
 
     char character;
     while ((character = consume_char(file)) && character != EOF)
     {
+        if (tokens_index == tokens_capacity)
+        {
+            tokens_capacity *= 2;
+            tokens = realloc(tokens, tokens_capacity * sizeof(Token));
+        }
         switch (map_char(character))
         {
         case Letter:
@@ -83,17 +102,7 @@ void lex(FILE *file)
     eval(tokens, tokens_index);
 }
 
-int check_args(size_t stack_index, size_t expected)
-{
-    if (stack_index < expected - 1)
-    {
-        printf("Received %d args for +, expected %d args", stack_index + 1, expected);
-        return 0;
-    }
-    return 1;
-}
-
-void eval(Token tokens[], size_t size)
+void eval(Token *tokens, size_t size)
 {
     int stack[STACK_CAPACITY];
     size_t stack_index = -1;
@@ -104,33 +113,34 @@ void eval(Token tokens[], size_t size)
         switch (token.Type)
         {
         case Integer:
+            if (stack_index == STACK_CAPACITY - 1)
+            {
+                printf("ERROR: STACK_OVERFLOW (STACK_CAPACITY: %d)", STACK_CAPACITY);
+                return;
+            }
             stack[++stack_index] = atoi(token.Value);
             break;
         case Plus:
         {
-            if (!check_args(stack_index, 2))
-                return;
+            CHECK_ARGS(2, +);
             EXEC_INSTRUCTION(+);
             break;
         }
         case Minus:
         {
-            if (!check_args(stack_index, 2))
-                return;
+            CHECK_ARGS(2, -);
             EXEC_INSTRUCTION(-);
             break;
         }
         case Multiply:
         {
-            if (!check_args(stack_index, 2))
-                return;
+            CHECK_ARGS(2, *);
             EXEC_INSTRUCTION(*);
             break;
         }
         case Divide:
         {
-            if (!check_args(stack_index, 2))
-                return;
+            CHECK_ARGS(2, /);
             EXEC_INSTRUCTION(/);
             break;
         }

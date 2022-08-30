@@ -10,7 +10,7 @@ typedef enum TokenType
 typedef struct Token
 {
     TokenType Type;
-    char Value[16];
+    char *Value;
 } Token;
 
 void dump_token(Token token);
