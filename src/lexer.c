@@ -25,13 +25,10 @@ Token consume_number(FILE *file, char initial_char)
     char character;
     while ((character = consume_char(file)) && character != EOF && isdigit(character))
     {
-        if (number_index == number_capacity - 1)
-        {
-            number_capacity *= 2;
-            number = realloc(number, number_capacity * sizeof(char));
-        }
+        number = realloc(number, number_capacity++ * sizeof(char));
         number[++number_index] = character;
     }
+    number = realloc(number, number_capacity++ * sizeof(char));
     number[++number_index] = '\0';
     if (character != EOF)
         fseek(file, -1, SEEK_CUR);
@@ -40,18 +37,14 @@ Token consume_number(FILE *file, char initial_char)
 
 void lex(FILE *file)
 {
-    size_t tokens_index = 0;
     size_t tokens_capacity = 1;
+    size_t tokens_index = 0;
     Token *tokens = malloc(tokens_capacity * sizeof(Token));
 
     char character;
     while ((character = consume_char(file)) && character != EOF)
     {
-        if (tokens_index == tokens_capacity)
-        {
-            tokens_capacity *= 2;
-            tokens = realloc(tokens, tokens_capacity * sizeof(Token));
-        }
+        tokens = realloc(tokens, tokens_capacity++ * sizeof(Token));
         switch (map_char(character))
         {
         case Letter:
