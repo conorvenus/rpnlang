@@ -4,7 +4,9 @@ typedef enum TokenType
     Minus,
     Multiply,
     Divide,
-    Integer
+    Integer,
+    Symbol,
+    Keyword
 } TokenType;
 
 typedef struct Token

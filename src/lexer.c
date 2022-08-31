@@ -16,23 +16,40 @@
 
 const size_t STACK_CAPACITY = 64;
 
-Token consume_number(FILE *file, char initial_char)
+Token consume_number(FILE *file, char character)
 {
     size_t number_capacity = 1;
     size_t number_index = 0;
     char *number = malloc(number_capacity * sizeof(char));
-    *number = initial_char;
-    char character;
+    *number = character;
     while ((character = consume_char(file)) && character != EOF && isdigit(character))
     {
-        number = realloc(number, number_capacity++ * sizeof(char));
+        number = realloc(number, ++number_capacity * sizeof(char));
         number[++number_index] = character;
     }
-    number = realloc(number, number_capacity++ * sizeof(char));
+    number = realloc(number, ++number_capacity * sizeof(char));
     number[++number_index] = '\0';
     if (character != EOF)
         fseek(file, -1, SEEK_CUR);
     return (Token){Integer, number};
+}
+
+Token consume_symbol_keyword(FILE *file, char character)
+{
+    size_t string_capacity = 1;
+    size_t string_index = 0;
+    char *string = malloc(string_capacity * sizeof(char));
+    *string = character;
+    while ((character = consume_char(file)) && character != EOF && (isalpha(character) || character == '_'))
+    {
+        string = realloc(string, ++string_capacity * sizeof(char));
+        string[++string_index] = character;
+    }
+    string = realloc(string, ++string_capacity * sizeof(char));
+    string[++string_index] = '\0';
+    if (character != EOF)
+        fseek(file, -1, SEEK_CUR);
+    return (Token){Symbol, string};
 }
 
 void lex(FILE *file)
@@ -48,6 +65,7 @@ void lex(FILE *file)
         switch (map_char(character))
         {
         case Letter:
+            tokens[tokens_index++] = consume_symbol_keyword(file, character);
             break;
         case Digit:
             tokens[tokens_index++] = consume_number(file, character);
@@ -66,6 +84,9 @@ void lex(FILE *file)
                 break;
             case '/':
                 tokens[tokens_index++] = (Token){Divide, "/"};
+                break;
+            case '_':
+                tokens[tokens_index++] = consume_symbol_keyword(file, character);
                 break;
             }
             break;
